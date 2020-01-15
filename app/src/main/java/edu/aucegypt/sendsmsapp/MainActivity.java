@@ -2,6 +2,7 @@ package edu.aucegypt.sendsmsapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -28,21 +29,24 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 try{
-//                    i.setData(Uri.parse("smsto:"));
-//                    i.setType("message/rfc822");
-//                   // i.setType("vnd.android-dir/mms-sms");
-//                    i.putExtra("address", new String(txtMobile.getText().toString()));
-
+//
                     String smsNumber = String.format("smsto: %s",
                             txtMobile.getText().toString());
 
-                    Uri uri = Uri.parse(smsNumber);
-                    Intent i = new Intent(Intent.ACTION_SENDTO,uri);
+                    // Set the service center address if needed, otherwise null.
+                    String scAddress = null;
+                    // Set pending intents to broadcast
+                    // when message sent and when delivered, or set to null.
+                    PendingIntent sentIntent = null, deliveryIntent = null;
+                    // Use SmsManager.
+                    SmsManager smsManager = SmsManager.getDefault();
+                    String smsMessage = txtMessage.getText().toString();
+                    smsManager.sendTextMessage
+                            (smsNumber, scAddress, smsMessage,
+                                    sentIntent, deliveryIntent);
 
-                    i.putExtra("sms_body",txtMessage.getText().toString());
+                    Toast.makeText(MainActivity.this, "SMS Sent Successfully!", Toast.LENGTH_SHORT).show();
 
-                    //startActivity(Intent.createChooser(i, "Send sms via:"));
-                    startActivity(i);
                 }
                 catch(Exception e){
                     Toast.makeText(MainActivity.this, "SMS Failed to Send, Please try again", Toast.LENGTH_SHORT).show();
