@@ -10,13 +10,25 @@ import android.telephony.SmsManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
     private EditText txtMobile;
     private EditText txtMessage;
     private Button btnSms;
+    private TextView textView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +36,34 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         txtMobile = (EditText)findViewById(R.id.mblTxt);
         txtMessage = (EditText)findViewById(R.id.msgTxt);
+        textView = (TextView) findViewById(R.id.text_result);
+
+        OkHttpClient client = new OkHttpClient();
+        String url = "http://192.168.1.4:3000/myroute/hw";
+
+        final Request request = new Request.Builder()
+                .url(url)
+                .build();
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                 if(response.isSuccessful()){
+                     final String myResponse = response.body().string();
+
+                     MainActivity.this.runOnUiThread(new Runnable() {
+                         @Override
+                         public void run() {
+                             textView.setText(myResponse);
+                         }
+                     });
+                 }
+            }
+        });
         btnSms = (Button)findViewById(R.id.btnSend);
         btnSms.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -35,5 +35,12 @@
         android:layout_marginLeft="100dp"
         android:text="Send SMS" />
 
+    <TextView
+        android:id="@+id/text_result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TextView"
+        android:textSize="35sp"/>
+
 
 </LinearLayout>
