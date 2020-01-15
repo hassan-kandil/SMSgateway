@@ -38,32 +38,50 @@ public class MainActivity extends AppCompatActivity {
         txtMessage = (EditText)findViewById(R.id.msgTxt);
         textView = (TextView) findViewById(R.id.text_result);
 
-        OkHttpClient client = new OkHttpClient();
-        String url = "http://192.168.1.4:3000/myroute/hw";
+        Thread getSMSthread = new Thread(){
+          @Override
+          public  void run(){
+              while (!isInterrupted()){
+                  try {
+                      Thread.sleep(1000);
 
-        final Request request = new Request.Builder()
-                .url(url)
-                .build();
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                e.printStackTrace();
-            }
+                      OkHttpClient client = new OkHttpClient();
+                      String url = "http://192.168.1.4:3000/myroute/hw";
+                      final Request request = new Request.Builder()
+                              .url(url)
+                              .build();
 
-            @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                 if(response.isSuccessful()){
-                     final String myResponse = response.body().string();
+                      client.newCall(request).enqueue(new Callback() {
+                          @Override
+                          public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                              e.printStackTrace();
+                          }
 
-                     MainActivity.this.runOnUiThread(new Runnable() {
-                         @Override
-                         public void run() {
-                             textView.setText(myResponse);
-                         }
-                     });
-                 }
-            }
-        });
+                          @Override
+                          public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                                if(response.isSuccessful()){
+                                    final String myResponse = response.body().string();
+
+                                    MainActivity.this.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            textView.setText(myResponse);
+                                        }
+                                    });
+                                }
+
+                          }
+                      });
+
+
+                  } catch (InterruptedException e) {
+                      e.printStackTrace();
+                  }
+              }
+          }
+        };
+
+        getSMSthread.start();
         btnSms = (Button)findViewById(R.id.btnSend);
         btnSms.setOnClickListener(new View.OnClickListener() {
             @Override
