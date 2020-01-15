@@ -31,25 +31,27 @@ public class MainActivity extends AppCompatActivity {
     private EditText txtMessage;
     private Button btnSms;
     private TextView textView;
-    
+    private TextView textView2;
+    String msg_id ="";
+    int count=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        txtMobile = (EditText)findViewById(R.id.mblTxt);
-        txtMessage = (EditText)findViewById(R.id.msgTxt);
-        textView = (TextView) findViewById(R.id.text_result);
+        textView = (TextView) findViewById(R.id.text_count);
 
         Thread getSMSthread = new Thread(){
           @Override
           public  void run(){
               while (!isInterrupted()){
                   try {
-                      Thread.sleep(10000);
+                      Thread.sleep(1000);
 
                       OkHttpClient client = new OkHttpClient();
                       String url = "http://10.40.47.60:3000/myroute/getSMS";
+
+
                       final Request request = new Request.Builder()
                               .url(url)
                               .build();
@@ -66,47 +68,75 @@ public class MainActivity extends AppCompatActivity {
                                     final String myResponse = response.body().string();
                                     JSONObject myResponseReader;
 
-//                                    String PhoneNumber ="";
-//                                    String Body="";
-
                                     try {
                                         if(myResponse != "") {
                                             myResponseReader = new JSONObject(myResponse);
                                             final String PhoneNumber = myResponseReader.getString("Phone");
                                             final String Body = myResponseReader.getString("Body");
+                                            msg_id = myResponseReader.getString("id");
 
-                                           // try{
+                                           try{
 //
                                                 String smsNumber = String.format("smsto: %s",PhoneNumber);
-
-                                                // Set the service center address if needed, otherwise null.
                                                 String scAddress = null;
-                                                // Set pending intents to broadcast
-                                                // when message sent and when delivered, or set to null.
+
                                                 PendingIntent sentIntent = null, deliveryIntent = null;
-                                                // Use SmsManager.
                                                 SmsManager smsManager = SmsManager.getDefault();
                                                 String smsMessage = Body;
                                                 smsManager.sendTextMessage
                                                         (smsNumber, scAddress, smsMessage,
                                                                 sentIntent, deliveryIntent);
 
-                                                //Toast.makeText(MainActivity.this, "SMS Sent Successfully!", Toast.LENGTH_SHORT).show();
-
-                                         //   }
-//                                            catch(Exception e){
-//                                                Toast.makeText(MainActivity.this, "SMS Failed to Send, Please try again", Toast.LENGTH_SHORT).show();
-//                                            }
-
+                                                count++;
 
                                             MainActivity.this.runOnUiThread(new Runnable() {
                                                 @Override
                                                 public void run() {
-                                                    textView.setText(myResponse);
+                                                    textView.setText(Integer.toString(count));
+                                                    Toast.makeText(MainActivity.this, "SMS Sent Successfully!", Toast.LENGTH_SHORT).show();
+
 
 
                                                 }
                                             });
+
+                                                OkHttpClient client2 = new OkHttpClient();
+
+                                               String url2 = "http://10.40.47.60:3000/myroute/sentSMS?id=";
+                                               url2 += msg_id;
+
+
+                                               final Request sentSMSRequest = new Request.Builder()
+                                                       .url(url2)
+                                                       .build();
+                                               client2.newCall(sentSMSRequest).enqueue(new Callback() {
+                                                   @Override
+                                                   public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                                                       e.printStackTrace();
+                                                   }
+
+                                                   @Override
+                                                   public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+
+                                                   }
+                                               });
+
+
+
+                                             }
+                                            catch(Exception e){
+
+                                               MainActivity.this.runOnUiThread(new Runnable() {
+                                                   @Override
+                                                   public void run() {
+                                                       Toast.makeText(MainActivity.this, "SMS Failed to Send, Please try again", Toast.LENGTH_SHORT).show();
+                                                   }
+                                               });
+
+                                            }
+
+
+
                                         }
 
                                     } catch (JSONException e) {
@@ -121,6 +151,8 @@ public class MainActivity extends AppCompatActivity {
                       });
 
 
+
+
                   } catch (InterruptedException e) {
                       e.printStackTrace();
                   }
@@ -129,34 +161,5 @@ public class MainActivity extends AppCompatActivity {
         };
 
         getSMSthread.start();
-        btnSms = (Button)findViewById(R.id.btnSend);
-        btnSms.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try{
-//
-                    String smsNumber = String.format("smsto: %s",
-                            txtMobile.getText().toString());
-
-                    // Set the service center address if needed, otherwise null.
-                    String scAddress = null;
-                    // Set pending intents to broadcast
-                    // when message sent and when delivered, or set to null.
-                    PendingIntent sentIntent = null, deliveryIntent = null;
-                    // Use SmsManager.
-                    SmsManager smsManager = SmsManager.getDefault();
-                    String smsMessage = txtMessage.getText().toString();
-                    smsManager.sendTextMessage
-                            (smsNumber, scAddress, smsMessage,
-                                    sentIntent, deliveryIntent);
-
-                    Toast.makeText(MainActivity.this, "SMS Sent Successfully!", Toast.LENGTH_SHORT).show();
-
-                }
-                catch(Exception e){
-                    Toast.makeText(MainActivity.this, "SMS Failed to Send, Please try again", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
     }
 }
